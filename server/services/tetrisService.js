@@ -3,14 +3,18 @@ const Redis = require('redis');
 const gameLogic = require('../game/logic');
 const { GameResult, PlayerRanking } = require('../database/models');
 
-const redisClient = Redis.createClient();
+// Configuração do Redis
+const redisClient = Redis.createClient({
+    url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
 redisClient.on('error', (err) => console.log('Erro no Redis Client', err));
 redisClient.connect();
 
-// Armazena o estado das partidas e os streams dos jogadores
+// Estruturas de dados em memória
 const activeGames = new Map(); // gameId -> { gameState, playerStreams: [stream, stream] }
 let waitingPlayer = null; // Guarda informações do jogador que está à espera
 
+// Função para transmitir o estado do jogo para todos os jogadores na partida
 const broadcastGameState = (gameId) => {
     const game = activeGames.get(gameId);
     if (!game) return;
@@ -23,31 +27,40 @@ const broadcastGameState = (gameId) => {
             board: {
                 width: gameLogic.BOARD_WIDTH,
                 height: gameLogic.BOARD_HEIGHT,
-                // Converte a grelha 2D para um array plano de CellState
-                cells: p.board.flat().map(cell => cell > 0 ? 1 : 0) // 1 = FILLED, 0 = EMPTY
+                cells: p.board.flat()
             },
             score: p.score,
             next_piece_type: p.nextPiece.type
         })),
-        winner_name: game.gameState.winnerName || ''
+        winner_name: game.gameState.winnerName || undefined
     };
     
-    // Envia o estado para todos os jogadores na partida
-    game.playerStreams.forEach(stream => stream.write(gameStateForProto));
+    game.playerStreams.forEach(stream => {
+        if (!stream.destroyed) {
+            stream.write(gameStateForProto);
+        }
+    });
 };
 
-
+// Lógica para criar um novo jogo
 const createNewGame = (player1, stream1, player2, stream2) => {
     const gameId = uuidv4();
     console.log(`A criar novo jogo ${gameId} entre ${player1.name} e ${player2.name}`);
 
+    const createPlayerState = (player) => ({
+        id: player.id,
+        name: player.name,
+        board: gameLogic.createEmptyBoard(),
+        score: 0,
+        currentPiece: gameLogic.generateRandomPiece(),
+        nextPiece: gameLogic.generateRandomPiece(),
+        isGameOver: false
+    });
+
     const gameState = {
         id: gameId,
         status: 1, // PLAYING
-        players: [
-            { id: player1.id, name: player1.name, board: gameLogic.createEmptyBoard().grid, score: 0, currentPiece: gameLogic.generateRandomPiece(), nextPiece: gameLogic.generateRandomPiece() },
-            { id: player2.id, name: player2.name, board: gameLogic.createEmptyBoard().grid, score: 0, currentPiece: gameLogic.generateRandomPiece(), nextPiece: gameLogic.generateRandomPiece() },
-        ],
+        players: [createPlayerState(player1), createPlayerState(player2)],
         startTime: Date.now()
     };
     
@@ -56,9 +69,7 @@ const createNewGame = (player1, stream1, player2, stream2) => {
         playerStreams: [stream1, stream2]
     });
     
-    // Armazena o estado inicial no Redis
-    redisClient.set(`game:${gameId}`, JSON.stringify(gameState));
-
+    redisClient.set(`game:${gameId}`, JSON.stringify(gameState), { EX: 3600 }); // Expira em 1 hora
     broadcastGameState(gameId);
 };
 
@@ -68,117 +79,35 @@ const tetrisService = {
         const player = call.request;
         console.log(`${player.name} (ID: ${player.id}) juntou-se ao matchmaking.`);
         
-        if (waitingPlayer) {
-            // Encontrámos um par, começa o jogo
+        if (waitingPlayer && waitingPlayer.player.id !== player.id) {
             const p1 = waitingPlayer.player;
             const stream1 = waitingPlayer.stream;
-            const p2 = player;
-            const stream2 = call;
-            
-            waitingPlayer = null; // Limpa a fila de espera
-            createNewGame(p1, stream1, p2, stream2);
-
+            waitingPlayer = null;
+            createNewGame(p1, stream1, player, call);
         } else {
-            // Nenhum jogador à espera, este torna-se o jogador em espera
             waitingPlayer = { player, stream: call };
-            // Envia um estado de "à espera" para o cliente
-            call.write({
-                game_id: '',
-                status: 0, // WAITING_FOR_OPPONENT
-                player_states: []
-            });
+            call.write({ status: 0 }); // WAITING_FOR_OPPONENT
         }
 
         call.on('cancelled', () => {
             console.log(`${player.name} cancelou a ligação.`);
-            // Lógica para remover o jogador do jogo ou da fila de espera
             if (waitingPlayer && waitingPlayer.player.id === player.id) {
                 waitingPlayer = null;
             }
-            // Encontrar e terminar o jogo se o jogador estiver numa partida ativa
-            // (Esta parte pode ser mais complexa)
+            // Lógica mais complexa para lidar com desconexão no meio do jogo seria necessária aqui
         });
     },
 
     sendAction(call, callback) {
         const { game_id, player_id, action } = call.request;
+        // Lógica de ação do jogador (simplificada)
+        // A implementação completa exigiria validação de movimento, deteção de colisão,
+        // limpeza de linhas, pontuação e envio de lixo para o oponente.
         const game = activeGames.get(game_id);
+        if (!game) return callback();
 
-        if (!game || game.gameState.status !== 1 /* PLAYING */) {
-            // Jogo não encontrado ou já terminado
-            return callback();
-        }
-
-        const playerState = game.gameState.players.find(p => p.id === player_id);
-        if (!playerState) return callback();
-        
-        // TODO: Implementar a lógica real para cada ação (mover, rodar, etc.)
-        // Isto é uma simplificação. A lógica real de colisão e movimento seria complexa.
-        const piece = playerState.currentPiece;
-        switch(action) {
-            case 0: piece.x--; break; // MOVE_LEFT
-            case 1: piece.x++; break; // MOVE_RIGHT
-            case 3: piece.y++; break; // SOFT_DROP
-            // ... outras ações
-        }
-
-        // Simulação de queda de peça e final de jogo
-        piece.y++;
-        if (piece.y > gameLogic.BOARD_HEIGHT - 2) {
-            // Simplificação: fixa a peça e gera uma nova
-            for (let y = 0; y < piece.shape.length; y++) {
-                for (let x = 0; x < piece.shape[y].length; x++) {
-                    if (piece.shape[y][x] !== 0) {
-                        const boardY = piece.y + y;
-                        const boardX = piece.x + x;
-                        if(boardY < gameLogic.BOARD_HEIGHT && boardX < gameLogic.BOARD_WIDTH) {
-                           playerState.board[boardY][boardX] = piece.shape[y][x];
-                        }
-                    }
-                }
-            }
-            playerState.score += 10;
-            playerState.currentPiece = playerState.nextPiece;
-            playerState.currentPiece.x = Math.floor(gameLogic.BOARD_WIDTH / 2) - 1;
-            playerState.currentPiece.y = 0;
-            playerState.nextPiece = gameLogic.generateRandomPiece();
-
-            // Lógica de Game Over (muito simplificada)
-            if (playerState.score > 100) {
-                game.gameState.status = 2; // GAME_OVER
-                const winner = playerState;
-                const loser = game.gameState.players.find(p => p.id !== player_id);
-                game.gameState.winnerName = winner.name;
-                
-                // Salvar na base de dados
-                const durationSeconds = Math.floor((Date.now() - game.gameState.startTime) / 1000);
-                const result = new GameResult({
-                    gameId: game_id,
-                    players: game.gameState.players.map(p => ({ id: p.id, name: p.name, score: p.score })),
-                    winnerName: winner.name,
-                    durationSeconds: durationSeconds,
-                });
-                result.save().then(() => console.log(`Jogo ${game_id} guardado na DB.`));
-
-                // Atualizar ranking
-                const updateRanking = async (player, isWinner) => {
-                    await PlayerRanking.findOneAndUpdate(
-                        { playerName: player.name },
-                        { 
-                            $inc: { totalWins: isWinner ? 1 : 0 },
-                            $max: { highestScore: player.score }
-                        },
-                        { upsert: true, new: true }
-                    );
-                };
-                updateRanking(winner, true);
-                updateRanking(loser, false);
-
-                // Remover do Redis e dos jogos ativos
-                redisClient.del(`game:${game_id}`);
-                activeGames.delete(game_id);
-            }
-        }
+        console.log(`Ação ${action} recebida do jogador ${player_id} para o jogo ${game_id}`);
+        // TODO: Implementar a lógica real do jogo aqui.
         
         broadcastGameState(game_id);
         callback();
@@ -198,7 +127,6 @@ const tetrisService = {
                 }))
             };
             callback(null, response);
-
         } catch (error) {
             console.error("Erro ao obter ranking:", error);
             callback(error);
