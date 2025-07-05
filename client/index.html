@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tetris Multijogador Distribuído</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Fontes do Google -->
     <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
     <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
     <link href="[https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto&display=swap](https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto&display=swap)" rel="stylesheet">
@@ -14,57 +13,43 @@
     <div class="main-container">
         <h1>Tetris Multijogador</h1>
         
-        <!-- Ecrã de Login/Matchmaking -->
         <div id="login-screen" class="screen active">
             <h2>Bem-vindo!</h2>
             <p>Insira o seu nome para encontrar uma partida.</p>
-            <input type="text" id="player-name-input" placeholder="O seu nome">
+            <input type="text" id="player-name-input" placeholder="O seu nome" maxlength="15">
             <button id="join-game-btn">Procurar Jogo</button>
-            <p id="status-message"></p>
+            <p id="status-message" class="status"></p>
         </div>
 
-        <!-- Ecrã de Jogo -->
         <div id="game-screen" class="screen">
             <div class="game-area">
-                <!-- Tabuleiro do Jogador 1 (local) -->
                 <div class="player-board">
                     <h3 id="player1-name">Jogador 1</h3>
                     <canvas id="tetris-canvas-1" width="200" height="400"></canvas>
-                    <div class="info">
-                        <p>Pontuação: <span id="player1-score">0</span></p>
-                    </div>
+                    <div class="info">Pontuação: <span id="player1-score">0</span></div>
                 </div>
                 
-                <!-- Informação da Próxima Peça -->
                  <div class="next-piece-area">
                     <h4>Próxima</h4>
                     <canvas id="next-piece-canvas" width="80" height="80"></canvas>
                 </div>
 
-                <!-- Tabuleiro do Jogador 2 (oponente) -->
                 <div class="player-board">
                     <h3 id="player2-name">Oponente</h3>
                     <canvas id="tetris-canvas-2" width="200" height="400"></canvas>
-                    <div class="info">
-                        <p>Pontuação: <span id="player2-score">0</span></p>
-                    </div>
+                    <div class="info">Pontuação: <span id="player2-score">0</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Ecrã de Fim de Jogo -->
         <div id="game-over-screen" class="screen">
             <h2>Fim de Jogo!</h2>
-            <p id="winner-message"></p>
+            <p id="winner-message" class="status"></p>
             <button id="play-again-btn">Jogar Novamente</button>
         </div>
     </div>
 
-    <!-- 
-      Scripts gRPC-web gerados. 
-      Estes ficheiros precisam de ser gerados com o protoc.
-      Veja as instruções de compilação.
-    -->
+    <!-- Scripts gRPC-web gerados -->
     <script src="./proto/tetris_pb.js"></script>
     <script src="./proto/tetris_grpc_web_pb.js"></script>
     <script src="./game.js"></script>

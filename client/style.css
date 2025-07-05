@@ -12,28 +12,24 @@ body {
 .main-container {
     text-align: center;
     background-color: #16213e;
-    padding: 2rem;
+    padding: 2rem 3rem;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 2px solid #0f3460;
 }
 
 h1, h2, h3, h4 {
     font-family: 'Press Start 2P', cursive;
-    color: #00ffff; /* Cyan neon */
+    color: #00ffff;
     text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
 }
 
-.screen {
-    display: none;
-}
+.screen { display: none; }
+.screen.active { display: block; }
 
-.screen.active {
+input {
     display: block;
-}
-
-#login-screen input {
-    display: block;
-    margin: 1rem auto;
+    margin: 1.5rem auto;
     padding: 0.8rem;
     width: 80%;
     max-width: 300px;
@@ -42,9 +38,10 @@ h1, h2, h3, h4 {
     color: #e0e0e0;
     border-radius: 8px;
     font-size: 1rem;
+    text-align: center;
 }
 
-#login-screen button, #game-over-screen button {
+button {
     font-family: 'Press Start 2P', cursive;
     background-color: #e94560;
     color: white;
@@ -53,26 +50,27 @@ h1, h2, h3, h4 {
     border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    transition: all 0.2s ease;
     box-shadow: 0 0 10px #e94560;
 }
-
-#login-screen button:hover, #game-over-screen button:hover {
+button:hover {
     background-color: #f06a8a;
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px #e94560;
 }
 
-#status-message {
-    margin-top: 1rem;
+.status {
+    margin-top: 1.5rem;
     color: #fca311;
-    min-height: 20px;
+    font-weight: bold;
+    min-height: 22px;
 }
 
 .game-area {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    gap: 2rem;
+    gap: 2.5rem;
     margin-top: 1rem;
 }
 
@@ -86,11 +84,6 @@ canvas {
     border: 3px solid #0f3460;
     background-color: #000;
     border-radius: 5px;
-}
-
-#next-piece-canvas {
-    background-color: transparent;
-    border: 3px solid #0f3460;
 }
 
 .info {
