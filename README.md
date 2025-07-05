@@ -10,19 +10,17 @@ clientes e um servidor central, utilizando tecnologias modernas e escaláveis.
 A arquitetura do sistema segue o modelo cliente-servidor distribuído, com
 comunicação em tempo real otimizada para baixa latência.
 
+![Arquitetura do Sistema](./Images/Diagrama.png)
+
 ### Componentes:
 
-```
-Clientes Web HTML5  JS Responsáveis pela interface gráfica (renderizada
-com a Canvas API) e pela captura da interação do jogador.
-Servidor Central Node.js): Orquestra as partidas, gere o estado do jogo em
-tempo real, processa a lógica de negócio e gere a persistência dos dados.
-```
+
+-  Clientes Web HTML5  JS Responsáveis pela interface gráfica (renderizada com a Canvas API) e pela captura da interação do jogador.
+-  Servidor Central Node.js): Orquestra as partidas, gere o estado do jogo em tempo real, processa a lógica de negócio e gere a persistência dos dados.
+
 
 ```
-Proxy Envoy): Atua como um intermediário que traduz os pedidos gRPCWeb
-(baseados em HTTP/1.1 do navegador para o protocolo gRPC padrão
-(baseado em HTTP/2 que o servidor Node.js entende.
+Proxy Envoy): Atua como um intermediário que traduz os pedidos gRPC-Web (baseados em HTTP/1.1 do navegador para o protocolo gRPC padrão (baseado em HTTP/2 que o servidor Node.js entende.
 gRPC  Protobuf: Define e executa a comunicação entre clientes e servidor
 de forma eficiente e com um contrato de serviço bem definido.
 Redis: Utilizado como uma base de dados em memória de alta velocidade
