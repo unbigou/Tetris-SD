@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package tetris;
+
+// O serviço principal do jogo Tetris
+service Tetris {
+  // Inicia uma conexão e entra numa fila de matchmaking.
+  // Retorna um stream com as atualizações do estado do jogo.
+  rpc JoinGame(Player) returns (stream GameState);
+
+  // O cliente envia uma ação para o servidor (mover peça, etc.).
+  // A resposta vem pelo stream principal, por isso o retorno é vazio.
+  rpc SendAction(PlayerAction) returns (Empty);
+
+  // Cliente consulta o ranking geral dos melhores jogadores.
+  rpc GetRanking(Empty) returns (RankingResponse);
+}
+
+// Mensagem vazia padrão
+message Empty {}
+
+// Informações do Jogador
+message Player {
+  string id = 1;      // ID único do jogador (gerado pelo cliente)
+  string name = 2;    // Nome do jogador
+}
+
+// Representa uma única célula no tabuleiro
+enum CellState {
+  EMPTY = 0;
+  FILLED = 1; // Célula preenchida por uma peça
+}
+
+// Representa o tabuleiro do jogo (ex: 10x20)
+message Board {
+  int32 width = 1;
+  int32 height = 2;
+  repeated int32 cells = 3; // Um array plano representando a grelha (0=vazio, >0=cor da peça)
+}
+
+// Estado completo de um jogador na partida
+message PlayerState {
+  Player player_info = 1;
+  Board board = 2;
+  int32 score = 3;
+  string next_piece_type = 4; // Tipo da próxima peça (ex: "T", "L", "I")
+}
+
+// Estado completo da partida, enviado para todos os jogadores no stream
+message GameState {
+  string game_id = 1;
+  enum Status {
+    WAITING_FOR_OPPONENT = 0;
+    PLAYING = 1;
+    GAME_OVER = 2;
+  }
+  Status status = 2;
+  repeated PlayerState player_states = 3; // Lista com o estado de cada jogador
+  optional string winner_name = 4; // Nome do vencedor quando o jogo termina
+}
+
+// Ação realizada pelo jogador
+message PlayerAction {
+  string game_id = 1;
+  string player_id = 2;
+  enum ActionType {
+    MOVE_LEFT = 0;
+    MOVE_RIGHT = 1;
+    ROTATE_CW = 2;  // Rodar no sentido horário
+    SOFT_DROP = 3;
+    HARD_DROP = 4;
+  }
+  ActionType action = 3;
+}
+
+// Uma entrada no ranking
+message RankingEntry {
+    string player_name = 1;
+    int32 total_wins = 2;
+    int32 highest_score = 3;
+}
+
+// A resposta da chamada de ranking
+message RankingResponse {
+    repeated RankingEntry entries = 1;
+}
