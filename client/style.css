@@ -1,0 +1,100 @@
+body {
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.main-container {
+    text-align: center;
+    background-color: #16213e;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Press Start 2P', cursive;
+    color: #00ffff; /* Cyan neon */
+    text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
+}
+
+.screen {
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+#login-screen input {
+    display: block;
+    margin: 1rem auto;
+    padding: 0.8rem;
+    width: 80%;
+    max-width: 300px;
+    border: 2px solid #0f3460;
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+#login-screen button, #game-over-screen button {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #e94560;
+    color: white;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 0 10px #e94560;
+}
+
+#login-screen button:hover, #game-over-screen button:hover {
+    background-color: #f06a8a;
+    transform: translateY(-2px);
+}
+
+#status-message {
+    margin-top: 1rem;
+    color: #fca311;
+    min-height: 20px;
+}
+
+.game-area {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.player-board {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+canvas {
+    border: 3px solid #0f3460;
+    background-color: #000;
+    border-radius: 5px;
+}
+
+#next-piece-canvas {
+    background-color: transparent;
+    border: 3px solid #0f3460;
+}
+
+.info {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    margin-top: 1rem;
+}

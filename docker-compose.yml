@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo
+    container_name: tetris-mongo
+    ports:
+      - "27017:27017" # Expõe a porta padrão do MongoDB
+    volumes:
+      - mongo-data:/data/db # Persiste os dados do MongoDB
+    networks:
+      - tetris-net
+
+  redis:
+    image: redis:alpine
+    container_name: tetris-redis
+    ports:
+      - "6379:6379" # Expõe a porta padrão do Redis
+    networks:
+      - tetris-net
+
+volumes:
+  mongo-data: # Define o volume para persistência
+
+networks:
+  tetris-net: # Define a rede para que os contentores se possam comunicar
