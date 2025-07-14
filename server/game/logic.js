@@ -1,3 +1,6 @@
+const BOARD_WIDTH = 10;
+const BOARD_HEIGHT = 20;
+
 const PIECES = {
     'I': { shape: [[1, 1, 1, 1]], color: 1 },
     'L': { shape: [[0, 0, 2], [2, 2, 2]], color: 2 },
@@ -9,14 +12,7 @@ const PIECES = {
 };
 const PIECE_TYPES = Object.keys(PIECES);
 
-const BOARD_WIDTH = 10;
-const BOARD_HEIGHT = 20;
-
-const createEmptyBoard = () => ({
-    width: BOARD_WIDTH,
-    height: BOARD_HEIGHT,
-    grid: Array(BOARD_HEIGHT).fill(0).map(() => Array(BOARD_WIDTH).fill(0))
-});
+const createEmptyBoard = () => Array(BOARD_HEIGHT).fill(0).map(() => Array(BOARD_WIDTH).fill(0));
 
 const generateRandomPiece = () => {
     const type = PIECE_TYPES[Math.floor(Math.random() * PIECE_TYPES.length)];
@@ -30,11 +26,4 @@ const generateRandomPiece = () => {
     };
 };
 
-module.exports = {
-    PIECES,
-    PIECE_TYPES,
-    BOARD_WIDTH,
-    BOARD_HEIGHT,
-    createEmptyBoard,
-    generateRandomPiece
-};
+module.exports = { PIECES, BOARD_WIDTH, BOARD_HEIGHT, createEmptyBoard, generateRandomPiece };

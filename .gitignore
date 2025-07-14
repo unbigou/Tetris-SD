@@ -1,0 +1,16 @@
+# Dependências (nunca devem ser enviadas)
+node_modules/
+/server/node_modules/
+/client/node_modules/
+
+# Ficheiros de build do cliente
+/client/dist/
+
+# Ficheiros de log do npm/yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ficheiros de sistema operativo
+.DS_Store
+Thumbs.db

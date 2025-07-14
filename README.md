@@ -86,6 +86,9 @@ yarn install
 # Este comando gera os ficheiros JS para o servidor Node.js
 protoc -I=./proto --grpc_out=grpc_js:./src --js_out=import_style=commonjs:./src ./proto/tetris.proto
 
+# Em Windows.
+npx protoc --proto_path=./proto --js_out=import_style=browser,binary:../client/proto --grpc-web_out=import_style=typescript,mode=grpcwebtext:../client/proto ./proto/tetris.proto
+
 # Iniciar o servidor (recomenda-se usar um ficheiro .env para as variáveis)
 yarn start
 ```
@@ -100,6 +103,9 @@ protoc -I=./server/proto --js_out=import_style=commonjs,binary:./client/proto --
 
 # Inicie o proxy Envoy (ver ficheiro de configuração envoy.yaml)
 docker run -d --name=envoy -p 8080:8080 -v $(pwd)/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy:v1.22.0
+
+# Em Windows
+docker run -d --rm --name=envoy -p 8080:8080 --network=tetris-sd_tetris-net -v ${pwd}/envoy.yaml:/etc/envoy/envoy.yaml envoyproxy/envoy:v1.22.0
 
 # Navegue até à pasta do cliente e sirva os ficheiros
 cd client

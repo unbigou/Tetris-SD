@@ -12,7 +12,6 @@
 <body>
     <div class="main-container">
         <h1>Tetris Multijogador</h1>
-        
         <div id="login-screen" class="screen active">
             <h2>Bem-vindo!</h2>
             <p>Insira o seu nome para encontrar uma partida.</p>
@@ -20,7 +19,6 @@
             <button id="join-game-btn">Procurar Jogo</button>
             <p id="status-message" class="status"></p>
         </div>
-
         <div id="game-screen" class="screen">
             <div class="game-area">
                 <div class="player-board">
@@ -28,12 +26,10 @@
                     <canvas id="tetris-canvas-1" width="200" height="400"></canvas>
                     <div class="info">Pontuação: <span id="player1-score">0</span></div>
                 </div>
-                
                  <div class="next-piece-area">
                     <h4>Próxima</h4>
                     <canvas id="next-piece-canvas" width="80" height="80"></canvas>
                 </div>
-
                 <div class="player-board">
                     <h3 id="player2-name">Oponente</h3>
                     <canvas id="tetris-canvas-2" width="200" height="400"></canvas>
@@ -41,17 +37,13 @@
                 </div>
             </div>
         </div>
-
         <div id="game-over-screen" class="screen">
             <h2>Fim de Jogo!</h2>
             <p id="winner-message" class="status"></p>
             <button id="play-again-btn">Jogar Novamente</button>
         </div>
     </div>
-
-    <!-- Scripts gRPC-web gerados -->
-    <script src="./proto/tetris_pb.js"></script>
-    <script src="./proto/tetris_grpc_web_pb.js"></script>
-    <script src="./game.js"></script>
+    <!-- Carrega o ficheiro único empacotado pelo Webpack -->
+    <script src="./dist/bundle.js"></script>
 </body>
 </html>

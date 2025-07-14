@@ -1,3 +1,9 @@
+# ############################################################################
+#
+#   Descrição:  Configuração do Proxy Envoy para traduzir
+#               pedidos gRPC-Web (do navegador) para gRPC (para o servidor).
+#
+# ############################################################################
 static_resources:
   listeners:
   - name: listener_0

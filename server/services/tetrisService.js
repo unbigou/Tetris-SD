@@ -3,18 +3,13 @@ const Redis = require('redis');
 const gameLogic = require('../game/logic');
 const { GameResult, PlayerRanking } = require('../database/models');
 
-// Configuração do Redis
-const redisClient = Redis.createClient({
-    url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
+const redisClient = Redis.createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });
 redisClient.on('error', (err) => console.log('Erro no Redis Client', err));
 redisClient.connect();
 
-// Estruturas de dados em memória
-const activeGames = new Map(); // gameId -> { gameState, playerStreams: [stream, stream] }
-let waitingPlayer = null; // Guarda informações do jogador que está à espera
+const activeGames = new Map();
+let waitingPlayer = null;
 
-// Função para transmitir o estado do jogo para todos os jogadores na partida
 const broadcastGameState = (gameId) => {
     const game = activeGames.get(gameId);
     if (!game) return;
@@ -34,7 +29,7 @@ const broadcastGameState = (gameId) => {
         })),
         winner_name: game.gameState.winnerName || undefined
     };
-    
+
     game.playerStreams.forEach(stream => {
         if (!stream.destroyed) {
             stream.write(gameStateForProto);
@@ -42,7 +37,6 @@ const broadcastGameState = (gameId) => {
     });
 };
 
-// Lógica para criar um novo jogo
 const createNewGame = (player1, stream1, player2, stream2) => {
     const gameId = uuidv4();
     console.log(`A criar novo jogo ${gameId} entre ${player1.name} e ${player2.name}`);
@@ -63,22 +57,17 @@ const createNewGame = (player1, stream1, player2, stream2) => {
         players: [createPlayerState(player1), createPlayerState(player2)],
         startTime: Date.now()
     };
-    
-    activeGames.set(gameId, {
-        gameState,
-        playerStreams: [stream1, stream2]
-    });
-    
-    redisClient.set(`game:${gameId}`, JSON.stringify(gameState), { EX: 3600 }); // Expira em 1 hora
+
+    activeGames.set(gameId, { gameState, playerStreams: [stream1, stream2] });
+    redisClient.set(`game:${gameId}`, JSON.stringify(gameState), { EX: 3600 });
     broadcastGameState(gameId);
 };
 
-// Implementação dos métodos do serviço gRPC
 const tetrisService = {
     joinGame(call) {
         const player = call.request;
         console.log(`${player.name} (ID: ${player.id}) juntou-se ao matchmaking.`);
-        
+
         if (waitingPlayer && waitingPlayer.player.id !== player.id) {
             const p1 = waitingPlayer.player;
             const stream1 = waitingPlayer.stream;
@@ -94,31 +83,22 @@ const tetrisService = {
             if (waitingPlayer && waitingPlayer.player.id === player.id) {
                 waitingPlayer = null;
             }
-            // Lógica mais complexa para lidar com desconexão no meio do jogo seria necessária aqui
         });
     },
 
     sendAction(call, callback) {
-        const { game_id, player_id, action } = call.request;
-        // Lógica de ação do jogador (simplificada)
-        // A implementação completa exigiria validação de movimento, deteção de colisão,
-        // limpeza de linhas, pontuação e envio de lixo para o oponente.
+        // A lógica de ação do jogador (simplificada) seria implementada aqui.
+        const { game_id, player_id } = call.request;
         const game = activeGames.get(game_id);
         if (!game) return callback();
-
-        console.log(`Ação ${action} recebida do jogador ${player_id} para o jogo ${game_id}`);
-        // TODO: Implementar a lógica real do jogo aqui.
-        
+        // TODO: Implementar a lógica real do jogo.
         broadcastGameState(game_id);
         callback();
     },
 
     async getRanking(call, callback) {
         try {
-            const topPlayers = await PlayerRanking.find()
-                .sort({ totalWins: -1, highestScore: -1 })
-                .limit(10);
-                
+            const topPlayers = await PlayerRanking.find().sort({ totalWins: -1, highestScore: -1 }).limit(10);
             const response = {
                 entries: topPlayers.map(p => ({
                     player_name: p.playerName,
@@ -128,7 +108,6 @@ const tetrisService = {
             };
             callback(null, response);
         } catch (error) {
-            console.error("Erro ao obter ranking:", error);
             callback(error);
         }
     }

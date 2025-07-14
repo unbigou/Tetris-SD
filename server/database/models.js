@@ -2,11 +2,7 @@ const mongoose = require('mongoose');
 
 const GameResultSchema = new mongoose.Schema({
     gameId: { type: String, required: true, unique: true },
-    players: [{
-      id: String,
-      name: String,
-      score: Number
-    }],
+    players: [{ id: String, name: String, score: Number }],
     winnerName: { type: String, required: true },
     durationSeconds: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now },
